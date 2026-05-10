@@ -1,0 +1,36 @@
+name: CUDA Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install CUDA Toolkit
+      uses: Jimver/cuda-toolkit@v0.2.14
+      with:
+        cuda: '12.4.0'
+    
+    - name: Install CMake
+      uses: kitware/cmake-build-action@v1
+      with:
+        cmake-version: '3.27'
+    
+    - name: Configure and Build with CUDA
+      run: |
+        cmake -S . -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j
+    
+    - name: Upload Build Artifacts
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: build/
